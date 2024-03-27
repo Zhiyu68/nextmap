@@ -1,13 +1,15 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
   MarkerF,
   InfoWindowF,
+  DirectionsRenderer,
 } from "@react-google-maps/api";
 
-export default function MapComponent() {
+export default function MapComponent(props) {
   const containerStyle = {
     width: "100%",
     height: "90vh",
@@ -31,24 +33,64 @@ export default function MapComponent() {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   });
 
-  const pinIcon = {
-    url: "/assets/pin.png",
-    scaledSize: { width: 50, height: 50 },
-  };
+  const mapRef = useRef(null);
 
-  const [isInfoWondowOpen, setIsInfoWindowOpen] = useState(false);
-
-  // On click function
-  function MarkerClicked(event) {
-    console.log("You have just clicked the marker");
-    setIsInfoWindowOpen(true);
+  function panToUserOrigin(props) {
+    const newPosition = {
+      lat: props.searchOriginLatitude,
+      lng: props.searchOriginLongitude,
+    };
+    const map = mapRef.current;
+    map.panTo(newPosition);
   }
 
-  // On drag end function
-  function MarkerFinishDrag(event) {
-    console.log("The final latitude is : ", event.latLng.lat());
-    console.log("The final longitude is : ", event.latLng.lng());
-  }
+  useEffect(() => {
+    if (
+      props.searchOriginLatitude !== null &&
+      props.searchOriginLongitude !== null
+    ) {
+      panToUserOrigin(props);
+    }
+  }, [props.searchOriginLatitude, props.searchOriginLongitude]);
+
+  // Directions data
+  const [directionsData, setDirectionsData] = useState(null);
+
+  useEffect(() => {
+    if (
+      props.searchOriginLatitude !== null &&
+      props.searchOriginLongitude !== null &&
+      props.searchDestinationLatitude !== null &&
+      props.searchDestinationLongitude
+    ) {
+      //Using the directions API
+      const requestOrigin = {
+        lat: props.searchOriginLatitude,
+        lng: props.searchOriginLongitude,
+      };
+      const requestDestination = {
+        lat: props.searchDestinationLatitude,
+        lng: props.searchDestinationLongitude,
+      };
+      const directionsService = new google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: requestOrigin,
+          destination: requestDestination,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result) => {
+          console.log(result);
+          setDirectionsData(result);
+        }
+      );
+    }
+  }, [
+    props.searchOriginLatitude,
+    props.searchOriginLongitude,
+    props.searchDestinationLatitude,
+    props.searchDestinationLongitude,
+  ]);
 
   return isLoaded ? (
     <GoogleMap
@@ -57,47 +99,27 @@ export default function MapComponent() {
       center={center}
       zoom={13}
       onClick={() => setIsInfoWindowOpen(false)}
+      onLoad={(map) => (mapRef.current = map)}
     >
       {/* Child components, such as markers, info windows, etc. */}
-      <MarkerF
-        position={{ lat: 51.50534952276425, lng: -0.07553889288923747 }}
-        icon={pinIcon}
-        // visibles
-        // cursor="pointer"
-        // label={{
-        //   text: "This is the text label",
-        //   className: "text-3xl text-center text-black bg-yellow-500",
-        // }}
-        draggable
-        onClick={MarkerClicked}
-        onDragEnd={MarkerFinishDrag}
-      >
-        {isInfoWondowOpen && (
-          <InfoWindowF
-            onCloseClick={() => setIsInfoWindowOpen(false)}
-            position={{ lat: 51.50534952276425, lng: -0.07553889288923747 }}
-          >
-            <div className="w-80 p-2">
-              <div className="flex items-center mb-2 space-x-5">
-                <img
-                  src="https://plus.unsplash.com/premium_photo-1709311442556-f4af586ad5fb?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  className="w-14 h-14 rounded-full"
-                />
-                <div>
-                  <h3 className="text-xl font-bold">Some title</h3>
-                  <p>Some subtitle</p>
-                </div>
-              </div>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                Vulputate sapien nec sagittis aliquam malesuada bibendum arcu
-                vitae elementum.
-              </p>
-            </div>
-          </InfoWindowF>
+      {props.searchOriginLatitude !== null &&
+        props.searchOriginLongitude !== null && (
+          <MarkerF
+            position={{
+              lat: props.searchOriginLatitude,
+              lng: props.searchOriginLongitude,
+            }}
+          />
         )}
-      </MarkerF>
+
+      {/* Direction renderer */}
+      {directionsData && (
+        <DirectionsRenderer
+          directions={directionsData}
+          options={{ polylineOptions: { strokeColor: "red", strokeWeight: 4 } }}
+        />
+      )}
+
       <></>
     </GoogleMap>
   ) : (

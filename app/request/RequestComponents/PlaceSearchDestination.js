@@ -6,7 +6,7 @@ import usePlacesAutocomplete, {
 import useOnclickOutside from "react-cool-onclickoutside";
 import { useState, useEffect } from "react";
 
-export default function PlaceSearchOrigin(props) {
+export default function PlaceSearchDestination(props) {
   const {
     ready,
     value,
@@ -52,18 +52,18 @@ export default function PlaceSearchOrigin(props) {
       getGeocode({ address: description }).then((results) => {
         const { lat, lng } = getLatLng(results[0]);
         // console.log("📍 Coordinates: ", { lat, lng });
-        props.setSearchOriginLatitude(lat);
-        props.setSearchOriginLongitude(lng);
+        props.setSearchDestinationLatitude(lat);
+        props.setSearchDestinationLongitude(lng);
       });
     };
 
   useEffect(() => {
-    if (props.searchOriginLatitude && props.searchOriginLongitude) {
+    if (props.searchDestinationLatitude && props.searchDestinationLongitude) {
       console.log(
-        `Retrieved ${props.searchOriginLatitude} and ${props.searchOriginLongitude}`
+        `Retrieved ${props.searchDestinationLatitude} and ${props.searchDestinationLongitude}`
       );
     }
-  }, [props.searchOriginLatitude, props.searchOriginLongitude]);
+  }, [props.searchDestinationLatitude, props.searchDestinationLongitude]);
 
   const renderSuggestions = () =>
     data.map((suggestion) => {
@@ -90,7 +90,7 @@ export default function PlaceSearchOrigin(props) {
         onChange={handleInput}
         disabled={!ready}
         className="w-full bg-black my-2 h-10 rounded-xl text-white font-bold p-2"
-        placeholder="Your origin?"
+        placeholder="Your Destination"
       />
       {/* We can use the "status" to decide whether we should display the dropdown or not */}
       {status === "OK" && <ul>{renderSuggestions()}</ul>}
