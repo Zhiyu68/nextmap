@@ -1,10 +1,26 @@
 import React from "react";
 import PlaceSearchOrigin from "./PlaceSearchOrigin";
 import PlaceSearchDestination from "./PlaceSearchDestination";
+import { supabase } from "@/lib/supabase";
 
 export default function RequestForm(props) {
+  async function FormSubmit(e) {
+    e.preventDefault();
+    const { error } = await supabase.from("requests").insert([
+      {
+        origin: `POINT(${props.searchOriginLongitude} ${props.searchOriginLatitude})`,
+        destination: `POINT(${props.searchDestinationLongitude} ${props.searchDestinationLatitude})`,
+      },
+    ]);
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("The form has been submitted successfully!");
+    }
+  }
+
   return (
-    <form className="flex flex-col mt-5 mx-2">
+    <form onSubmit={FormSubmit} className="flex flex-col mt-5 mx-2">
       <PlaceSearchOrigin
         searchOriginLatitude={props.searchOriginLatitude}
         searchOriginLongitude={props.searchOriginLongitude}
@@ -22,7 +38,17 @@ export default function RequestForm(props) {
       )}
 
       <div className="flex justify-center items-center">
-        <button className="bg-blue-600 text-white font-bold my-2 px-10 py-2 rounded-2xl">
+        <button
+          disabled={
+            props.searchOriginLatitude &&
+            props.searchOriginLongitude &&
+            props.searchDestinationLatitude &&
+            props.searchDestinationLongitude
+              ? false
+              : true
+          }
+          className="bg-blue-600 text-white font-bold my-2 px-10 py-2 rounded-2xl disabled:cursor-not-allowed"
+        >
           Submit
         </button>
       </div>
