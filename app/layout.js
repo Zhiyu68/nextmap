@@ -12,12 +12,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <header>
+      <head>
         <script
           defer
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
         ></script>
-      </header>
+      </head>
       <body className={inter.className}>
         <Header />
         {children}

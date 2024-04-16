@@ -6,16 +6,19 @@ import { supabase } from "@/lib/supabase";
 export default function RequestForm(props) {
   async function FormSubmit(e) {
     e.preventDefault();
-    const { error } = await supabase.from("requests").insert([
-      {
+    const { data, error } = await supabase
+      .from("requests")
+      .insert({
         origin: `POINT(${props.searchOriginLongitude} ${props.searchOriginLatitude})`,
         destination: `POINT(${props.searchDestinationLongitude} ${props.searchDestinationLatitude})`,
-      },
-    ]);
+      })
+      .select();
     if (error) {
       console.log(error);
     } else {
-      console.log("The form has been submitted successfully!");
+      // console.log("The form has been submitted successfully!");
+      // console.log(data[0].id);
+      window.location.href = `/request/${data[0].id}`;
     }
   }
 
